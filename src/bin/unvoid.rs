@@ -37,17 +37,15 @@ async fn async_main(args: UVParser) -> Result<()> {
 }
 
 fn get_level(args: &UVParser) -> Level {
-    if args.verbose {
-        VERBOSE_LEVEL
-    } else {
-        Level::INFO
+    match args.verbose {
+        true => VERBOSE_LEVEL,
+        false => Level::INFO,
     }
 }
 
 fn get_span(args: &UVParser) -> FmtSpan {
-    if args.verbose {
-        FmtSpan::NEW | FmtSpan::CLOSE
-    } else {
-        FmtSpan::NONE
+    match args.verbose {
+        true => FmtSpan::NEW | FmtSpan::CLOSE,
+        false => FmtSpan::NONE,
     }
 }
