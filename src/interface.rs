@@ -1,5 +1,6 @@
 use clap::{crate_authors, Parser};
-use url::Url;
+
+use crate::raw_url::RawUrl;
 
 const ABOUT: &str = "A tool that helps bootstrapping your projects";
 
@@ -11,6 +12,6 @@ pub struct UVParser {
     pub verbose: bool,
 
     /// The template to use
-    #[arg()]
-    pub template: Url,
+    #[arg(default_value = ".")]
+    pub template: RawUrl,
 }

@@ -31,7 +31,7 @@ fn main() -> Result<()> {
 
 #[tracing::instrument(name = "main", level = "trace", skip(args))]
 async fn async_main(args: UVParser) -> Result<()> {
-    info!(template = %args.template, "getting template");
+    info!(url = %args.template.final_url, "searching template");
 
     Ok(())
 }
