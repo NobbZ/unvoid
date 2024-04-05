@@ -13,12 +13,12 @@ impl FromStr for RawUrl {
     type Err = Report;
 
     fn from_str(s: &str) -> Result<Self> {
-        match Url::parse(&s) {
+        match Url::parse(s) {
             Ok(url) => Ok(RawUrl {
                 final_url: url,
                 raw: s.to_string(),
             }),
-            Err(parse_error) => maybe_fix_url_base(&s, &parse_error),
+            Err(parse_error) => maybe_fix_url_base(s, &parse_error),
         }
     }
 }
