@@ -1,0 +1,8 @@
+pub fn manifest() {
+    #{
+        name: "my-project",
+        version: "0.1.0",
+        authors: ["Alice", "Bob"],
+        templates: #{}
+    }
+}
