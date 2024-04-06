@@ -2,19 +2,57 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use eyre::{Result, WrapErr};
+use rune::runtime::VmResult;
 use rune::termcolor::{ColorChoice, StandardStream};
-use rune::{Context, Diagnostics, FromValue, Source, Sources, Vm};
-// use semver::Version;
+use rune::{Context, Diagnostics, FromValue, Source, Sources, Value, Vm};
+use semver::Version;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, FromValue)]
+macro_rules! try_from_value {
+    ($val:expr) => {
+        match rune::from_value($val) {
+            Ok(val) => val,
+            Err(err) => return VmResult::Err(err),
+        }
+    };
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Manifest {
     pub name: String,
-    // pub version: Version,
+    pub version: Version,
     // TODO: Add an Author type
     pub authors: Vec<String>,
     // TODO: Add a template type
     pub templates: HashMap<String, ()>,
+}
+
+macro_rules! try_from_value {
+    ($val:expr) => {
+        match rune::from_value($val) {
+            Ok(val) => val,
+            Err(err) => return VmResult::Err(err),
+        }
+    };
+}
+
+impl FromValue for Manifest {
+    fn from_value(value: Value) -> VmResult<Self> {
+        let map: HashMap<String, Value> = try_from_value!(value);
+        let name: String = try_from_value!(map.get("name").unwrap().clone());
+        let authors: Vec<String> = try_from_value!(map.get("authors").unwrap().clone());
+        let templates: HashMap<String, ()> = try_from_value!(map.get("templates").unwrap().clone());
+
+        let version_str: String = try_from_value!(map.get("version").unwrap().clone());
+        let version: Version = Version::parse(&version_str).unwrap();
+
+        VmResult::Ok(Self {
+            name,
+            version,
+            authors,
+            templates,
+        })
+    }
 }
 
 impl Manifest {
@@ -93,7 +131,7 @@ mod tests {
         let manifest = Manifest::from_toml(toml).unwrap();
 
         assert_eq!(manifest.name, "my-project");
-        // assert_eq!(manifest.version, Version::new(0, 1, 0));
+        assert_eq!(manifest.version, Version::new(0, 1, 0));
         assert_eq!(
             manifest.authors,
             vec!["Alice".to_string(), "Bob".to_string()]
@@ -112,7 +150,7 @@ mod tests {
         let manifest = Manifest::from_yaml(yaml).unwrap();
 
         assert_eq!(manifest.name, "my-project");
-        // assert_eq!(manifest.version, Version::new(0, 1, 0));
+        assert_eq!(manifest.version, Version::new(0, 1, 0));
         assert_eq!(
             manifest.authors,
             vec!["Alice".to_string(), "Bob".to_string()]
@@ -133,7 +171,7 @@ mod tests {
         let manifest = Manifest::from_json(json).unwrap();
 
         assert_eq!(manifest.name, "my-project");
-        // assert_eq!(manifest.version, Version::new(0, 1, 0));
+        assert_eq!(manifest.version, Version::new(0, 1, 0));
         assert_eq!(
             manifest.authors,
             vec!["Alice".to_string(), "Bob".to_string()]
@@ -159,7 +197,7 @@ mod tests {
         let manifest = Manifest::from_rune(source).unwrap();
 
         assert_eq!(manifest.name, "my-project");
-        // assert_eq!(manifest.version, Version::new(0, 1, 0));
+        assert_eq!(manifest.version, Version::new(0, 1, 0));
         assert_eq!(
             manifest.authors,
             vec!["Alice".to_string(), "Bob".to_string()]
