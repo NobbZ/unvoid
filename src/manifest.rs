@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use eyre::{Result, WrapErr};
 use rune::termcolor::{ColorChoice, StandardStream};
-use rune::{Context, Diagnostics, FromValue, Source, Sources, Vm};
+use rune::{Context, Diagnostics, FromValue, Module, Source, Sources, Vm};
 use serde::Deserialize;
 
 use crate::version::Version;
@@ -41,7 +41,12 @@ impl Manifest {
     }
 
     pub fn from_rune(source: Source) -> Result<Self> {
-        let ctx = Context::with_default_modules().wrap_err("Unable to initialize rune context")?;
+        let mut m = Module::default();
+        Version::register(&mut m)?;
+
+        let mut ctx =
+            Context::with_default_modules().wrap_err("Unable to initialize rune context")?;
+        ctx.install(m).wrap_err("Unable to install module")?;
         let rt = Arc::new(
             ctx.runtime()
                 .wrap_err("Unable to initialize rune runtime")?,
@@ -146,9 +151,11 @@ mod tests {
         let source = Source::memory(
             r#"
             pub fn manifest() {
+                let version = Version::new(0, 1, 0);
+
                 #{
                     name: "my-project",
-                    version: "0.1.0",
+                    version: version,
                     authors: ["Alice", "Bob"],
                     templates: #{}
                 }
