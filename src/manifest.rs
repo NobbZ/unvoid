@@ -73,6 +73,19 @@ impl Manifest {
 mod tests {
     use super::*;
 
+    use pretty_assertions::assert_eq;
+
+    macro_rules! assert_manifest {
+        ($manifest:expr) => {
+            assert_eq!($manifest.name, "my-project");
+            assert_eq!($manifest.version, Version::new(0, 1, 0));
+            assert_eq!(
+                $manifest.authors,
+                vec!["Alice".to_string(), "Bob".to_string()]
+            );
+        };
+    }
+
     #[test]
     fn minimal_deserializes_correctly_from_toml() {
         let toml = r#"
@@ -85,12 +98,7 @@ mod tests {
 
         let manifest = Manifest::from_toml(toml).unwrap();
 
-        assert_eq!(manifest.name, "my-project");
-        assert_eq!(manifest.version, Version::new(0, 1, 0));
-        assert_eq!(
-            manifest.authors,
-            vec!["Alice".to_string(), "Bob".to_string()]
-        );
+        assert_manifest!(manifest);
     }
 
     #[test]
@@ -104,12 +112,7 @@ mod tests {
 
         let manifest = Manifest::from_yaml(yaml).unwrap();
 
-        assert_eq!(manifest.name, "my-project");
-        assert_eq!(manifest.version, Version::new(0, 1, 0));
-        assert_eq!(
-            manifest.authors,
-            vec!["Alice".to_string(), "Bob".to_string()]
-        );
+        assert_manifest!(manifest);
     }
 
     #[test]
@@ -125,12 +128,7 @@ mod tests {
 
         let manifest = Manifest::from_json(json).unwrap();
 
-        assert_eq!(manifest.name, "my-project");
-        assert_eq!(manifest.version, Version::new(0, 1, 0));
-        assert_eq!(
-            manifest.authors,
-            vec!["Alice".to_string(), "Bob".to_string()]
-        );
+        assert_manifest!(manifest);
     }
 
     #[test]
@@ -153,11 +151,15 @@ mod tests {
 
         let manifest = Manifest::from_rune(source).unwrap();
 
-        assert_eq!(manifest.name, "my-project");
-        assert_eq!(manifest.version, Version::new(0, 1, 0));
-        assert_eq!(
-            manifest.authors,
-            vec!["Alice".to_string(), "Bob".to_string()]
-        );
+        assert_manifest!(manifest);
+    }
+
+    #[test]
+    fn minimal_seserializes_correctly_from_rune_file() {
+        let source = Source::from_path("tests/manifests/simple.rn").unwrap();
+
+        let manifest = Manifest::from_rune(source).unwrap();
+
+        assert_manifest!(manifest);
     }
 }
