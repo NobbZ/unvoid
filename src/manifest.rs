@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use eyre::{Result, WrapErr};
-use rune::termcolor::{ColorChoice, StandardStream};
-use rune::{Context, Diagnostics, FromValue, Module, Source, Sources, Vm};
+use rune::{FromValue, Source, Sources};
 use serde::Deserialize;
 
+use crate::rune::init_rune_vm;
 use crate::version::Version;
 
 #[derive(Debug, Deserialize, FromValue)]
@@ -41,17 +40,6 @@ impl Manifest {
     }
 
     pub fn from_rune(source: Source) -> Result<Self> {
-        let mut m = Module::default();
-        Version::register(&mut m)?;
-
-        let mut ctx =
-            Context::with_default_modules().wrap_err("Unable to initialize rune context")?;
-        ctx.install(m).wrap_err("Unable to install module")?;
-        let rt = Arc::new(
-            ctx.runtime()
-                .wrap_err("Unable to initialize rune runtime")?,
-        );
-
         let name = source.name().to_string();
 
         let mut sources = Sources::new();
@@ -59,20 +47,7 @@ impl Manifest {
             .insert(source)
             .wrap_err_with(|| format!("unable to insert source '{}'", name))?;
 
-        let mut diag = Diagnostics::new();
-
-        let result = rune::prepare(&mut sources)
-            .with_context(&ctx)
-            .with_diagnostics(&mut diag)
-            .build();
-
-        if !diag.is_empty() {
-            let mut writer = StandardStream::stderr(ColorChoice::Always);
-            diag.emit(&mut writer, &sources)?;
-        }
-
-        let unit = result.wrap_err("unable to build rune unit")?;
-        let mut vm = Vm::new(rt, Arc::new(unit));
+        let mut vm = init_rune_vm(&mut sources)?;
 
         let output = vm
             .call(["manifest"], ())
