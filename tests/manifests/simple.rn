@@ -1,10 +1,10 @@
 pub fn manifest() {
     let version = Version::new(0, 1, 0);
 
-    #{
+    Ok(#{
         name: "my-project",
         version: version,
         authors: ["Alice", "Bob"],
         templates: #{}
-    }
+    })
 }

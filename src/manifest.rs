@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use eyre::{Result, WrapErr};
-use rune::{FromValue, Source, Sources};
+use rune::{FromValue, Source, Sources, Value};
 use serde::Deserialize;
 
 use crate::rune::init_rune_vm;
@@ -53,7 +53,12 @@ impl Manifest {
             .call(["manifest"], ())
             .wrap_err("Unable to call manifest entrypoint")?;
 
-        rune::from_value(output).wrap_err("Unable to convert rune value to manifest")
+        let result: Result<Value, String> = rune::from_value(output)?;
+
+        match result {
+            Ok(value) => Ok(rune::from_value(value)?),
+            Err(err) => Err(eyre::eyre!(err)),
+        }
     }
 }
 
@@ -126,14 +131,14 @@ mod tests {
         let source = Source::memory(
             r#"
             pub fn manifest() {
-                let version = Version::new(0, 1, 0);
+                let version = Version::parse("0.1.0")?;
 
-                #{
+                Ok(#{
                     name: "my-project",
                     version: version,
                     authors: ["Alice", "Bob"],
                     templates: #{}
-                }
+                })
             }
         "#,
         )

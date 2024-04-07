@@ -18,6 +18,14 @@ impl Version {
         Self::new(major, minor, patch)
     }
 
+    #[rune::function(path = Self::parse)]
+    fn rune_from_str(version: String) -> Result<Self, String> {
+        match SemVer::parse(&version) {
+            Ok(semver) => Ok(semver.into()),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
     pub fn set_major(&mut self, major: u64) {
         self.0.major = major;
     }
@@ -46,6 +54,7 @@ impl Version {
         module.ty::<Version>()?;
 
         module.function_meta(Self::new_version)?;
+        module.function_meta(Self::rune_from_str)?;
 
         module.field_function(Protocol::SET, "major", Self::set_major)?;
         module.field_function(Protocol::SET, "minor", Self::set_minor)?;
@@ -58,19 +67,6 @@ impl Version {
         Ok(())
     }
 }
-
-// impl FromValue for Version {
-//     fn from_value(value: Value) -> VmResult<Self> {
-//         let version_str: String = match FromValue::from_value(value) {
-//             VmResult::Ok(version_str) => version_str,
-//             VmResult::Err(err) => return VmResult::Err(err),
-//         };
-
-//         let version = SemVer::parse(&version_str).unwrap();
-
-//         VmResult::Ok(Version(version))
-//     }
-// }
 
 impl From<SemVer> for Version {
     fn from(semver: SemVer) -> Self {
