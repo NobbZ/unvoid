@@ -4,7 +4,11 @@ pub fn manifest() {
     Ok(Manifest {
         name: "my-project",
         version: version,
-        authors: ["Alice", "Bob"],
+        authors: [
+            Author::from_str("Alice"),
+            Author::new("Bob"),
+            Author::with_mail("Charlie", "example@example.com"),
+        ],
         templates: #{}
     })
 }

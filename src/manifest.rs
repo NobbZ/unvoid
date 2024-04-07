@@ -4,6 +4,7 @@ use eyre::{Result, WrapErr};
 use rune::{Any, Module, Source, Sources, Value};
 use serde::Deserialize;
 
+use crate::author::Author;
 use crate::rune::init_rune_vm;
 use crate::version::Version;
 
@@ -12,8 +13,7 @@ use crate::version::Version;
 pub struct Manifest {
     pub name: String,
     pub version: Version,
-    // TODO: Add an Author type
-    pub authors: Vec<String>,
+    pub authors: Vec<Author>,
     // TODO: Add a template type
     pub templates: HashMap<String, ()>,
 }
@@ -71,9 +71,23 @@ impl Manifest {
 
 #[cfg(test)]
 mod tests {
+    use lazy_static::lazy_static;
+
     use super::*;
 
     use pretty_assertions::assert_eq;
+
+    lazy_static! {
+        static ref ALICE: Author = Author::String("Alice".into());
+        static ref BOB: Author = Author::Structured {
+            name: "Bob".into(),
+            email: None,
+        };
+        static ref CHARLIE: Author = Author::Structured {
+            name: "Charlie".into(),
+            email: Some("example@example.com".into()),
+        };
+    }
 
     macro_rules! assert_manifest {
         ($manifest:expr) => {
@@ -81,7 +95,7 @@ mod tests {
             assert_eq!($manifest.version, Version::new(0, 1, 0));
             assert_eq!(
                 $manifest.authors,
-                vec!["Alice".to_string(), "Bob".to_string()]
+                vec![ALICE.clone(), BOB.clone(), CHARLIE.clone()]
             );
         };
     }
@@ -91,7 +105,11 @@ mod tests {
         let toml = r#"
             name = "my-project"
             version = "0.1.0"
-            authors = ["Alice", "Bob"]
+            authors = [
+                "Alice",
+                {name = "Bob"},
+                {name = "Charlie", email = "example@example.com"}
+            ]
 
             [templates]
         "#;
@@ -106,7 +124,11 @@ mod tests {
         let yaml = r#"
             name: my-project
             version: "0.1.0"
-            authors: ["Alice", "Bob"]
+            authors:
+            - "Alice"
+            - name: "Bob"
+            - name: "Charlie"
+              email: "example@example.com"
             templates: {}
         "#;
 
@@ -121,7 +143,11 @@ mod tests {
             {
                 "name": "my-project",
                 "version": "0.1.0",
-                "authors": ["Alice", "Bob"],
+                "authors": [
+                    "Alice",
+                    {"name": "Bob"},
+                    {"name": "Charlie", "email": "example@example.com"}
+                ],
                 "templates": {}
             }
         "#;
@@ -141,7 +167,11 @@ mod tests {
                 Ok(Manifest {
                     name: "my-project",
                     version: version,
-                    authors: ["Alice", "Bob"],
+                    authors: [
+                        Author::from_str("Alice"),
+                        Author::new("Bob"),
+                        Author::with_mail("Charlie", "example@example.com"),
+                    ],
                     templates: #{}
                 })
             }
