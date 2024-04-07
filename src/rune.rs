@@ -6,11 +6,12 @@ use rune::{
     Context, Diagnostics, Module, Sources, Vm,
 };
 
-use crate::version::Version;
+use crate::{manifest::Manifest, version::Version};
 
 pub fn init_rune_vm(sources: &mut Sources) -> Result<Vm> {
     let mut prelude = Module::default();
     Version::register(&mut prelude)?;
+    Manifest::register(&mut prelude)?;
 
     let mut context = Context::with_default_modules()?;
     context.install(prelude)?;

@@ -1,13 +1,14 @@
 use std::collections::HashMap;
 
 use eyre::{Result, WrapErr};
-use rune::{FromValue, Source, Sources, Value};
+use rune::{Any, Module, Source, Sources, Value};
 use serde::Deserialize;
 
 use crate::rune::init_rune_vm;
 use crate::version::Version;
 
-#[derive(Debug, Deserialize, FromValue)]
+#[derive(Debug, Deserialize, Any)]
+#[rune(constructor)]
 pub struct Manifest {
     pub name: String,
     pub version: Version,
@@ -59,6 +60,12 @@ impl Manifest {
             Ok(value) => Ok(rune::from_value(value)?),
             Err(err) => Err(eyre::eyre!(err)),
         }
+    }
+
+    pub fn register(module: &mut Module) -> Result<()> {
+        module.ty::<Manifest>()?;
+
+        Ok(())
     }
 }
 
@@ -133,7 +140,7 @@ mod tests {
             pub fn manifest() {
                 let version = Version::parse("0.1.0")?;
 
-                Ok(#{
+                Ok(Manifest {
                     name: "my-project",
                     version: version,
                     authors: ["Alice", "Bob"],
