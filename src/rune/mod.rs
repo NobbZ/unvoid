@@ -1,21 +1,29 @@
+pub mod ty;
+
 use std::sync::Arc;
 
 use eyre::Result;
 use rune::{
     termcolor::{ColorChoice, StandardStream},
-    Context, Diagnostics, Module, Sources, Vm,
+    Context, Diagnostics, Sources, Vm,
 };
 
-use crate::{author::Author, manifest::Manifest, version::Version};
+use self::ty::author;
+use self::ty::version;
 
-pub fn init_rune_vm(sources: &mut Sources) -> Result<Vm> {
-    let mut prelude = Module::default();
-    Author::register(&mut prelude)?;
-    Manifest::register(&mut prelude)?;
-    Version::register(&mut prelude)?;
+pub fn prepare_context() -> Result<Context> {
+    // Manifest::register(&mut prelude)?;
+    // Version::register(&mut prelude)?;
 
     let mut context = Context::with_default_modules()?;
-    context.install(prelude)?;
+    context.install(author::module()?)?;
+    context.install(version::module()?)?;
+
+    Ok(context)
+}
+
+pub fn init_rune_vm(sources: &mut Sources) -> Result<Vm> {
+    let context = prepare_context()?;
 
     let runtime = Arc::new(context.runtime()?);
 
