@@ -6,7 +6,12 @@ use crate::rune::ty::author::Author as RuneAuthor;
 #[serde(untagged)]
 pub enum Author {
     String(String),
-    Structured { name: String, email: Option<String> },
+    Structured {
+        name: String,
+        email: Option<String>,
+        homepage: Option<String>,
+        github: Option<String>,
+    },
 }
 
 impl Author {
@@ -20,6 +25,20 @@ impl Author {
     pub fn get_email(&self) -> &Option<String> {
         match self {
             Self::Structured { email, .. } => email,
+            _ => &None,
+        }
+    }
+
+    pub fn get_homepage(&self) -> &Option<String> {
+        match self {
+            Self::Structured { homepage, .. } => homepage,
+            _ => &None,
+        }
+    }
+
+    pub fn get_github(&self) -> &Option<String> {
+        match self {
+            Self::Structured { github, .. } => github,
             _ => &None,
         }
     }
@@ -39,13 +58,18 @@ impl From<RuneAuthor> for Author {
         Author::Structured {
             name: rune_author.name,
             email: rune_author.email,
+            homepage: rune_author.homepage,
+            github: rune_author.github,
         }
     }
 }
 
 impl PartialEq<Author> for Author {
     fn eq(&self, other: &Author) -> bool {
-        self.get_name() == other.get_name() && self.get_email() == other.get_email()
+        self.get_name() == other.get_name()
+            && self.get_email() == other.get_email()
+            && self.get_homepage() == other.get_homepage()
+            && self.get_github() == other.get_github()
     }
 }
 
@@ -61,8 +85,21 @@ mod tests {
         static ref EMAIL_AUTHOR: Author = Author::Structured {
             name: "Alice".to_string(),
             email: Some("example@example.com".into()),
+            homepage: None,
+            github: None,
         };
-
+        static ref HOMEPAGE_AUTHOR: Author = Author::Structured {
+            name: "Alice".to_string(),
+            email: None,
+            homepage: Some("https://example.com".into()),
+            github: None,
+        };
+        static ref GITHUB_AUTHOR: Author = Author::Structured {
+            name: "Alice".to_string(),
+            email: None,
+            homepage: None,
+            github: Some("example".into()),
+        };
     }
 
     const TOML_SIMPLE: &str = r#"author = "Alice""#;
@@ -73,6 +110,17 @@ mod tests {
     const YAML_WITH_MAIL: &str = r#"author: { name: "Alice", email: "example@example.com" }"#;
     const JSON_WITH_MAIL: &str =
         r#"{"author": { "name": "Alice", "email": "example@example.com" }}"#;
+
+    const TOML_WITH_HOMEPAGE: &str =
+        r#"author = { name = "Alice", homepage = "https://example.com" }"#;
+    const YAML_WITH_HOMEPAGE: &str =
+        r#"author: { name: "Alice", homepage: "https://example.com" }"#;
+    const JSON_WITH_HOMEPAGE: &str =
+        r#"{"author": { "name": "Alice", "homepage": "https://example.com" }}"#;
+
+    const TOML_WITH_GITHUB: &str = r#"author = { name = "Alice", github = "example" }"#;
+    const YAML_WITH_GITHUB: &str = r#"author: { name: "Alice", github: "example" }"#;
+    const JSON_WITH_GITHUB: &str = r#"{"author": { "name": "Alice", "github": "example" }}"#;
 
     fn str2toml(input: &str) -> HashMap<String, Author> {
         toml::from_str(input).unwrap()
@@ -88,11 +136,17 @@ mod tests {
 
     #[rstest]
     #[case::toml_string(TOML_SIMPLE, str2toml, &SIMPLE_AUTHOR)]
-    #[case::toml_structured(TOML_WITH_MAIL, str2toml, &EMAIL_AUTHOR)]
+    #[case::toml_structured_email(TOML_WITH_MAIL, str2toml, &EMAIL_AUTHOR)]
+    #[case::toml_structured_homepage(TOML_WITH_HOMEPAGE, str2toml, &HOMEPAGE_AUTHOR)]    
+    #[case::toml_structured_github(TOML_WITH_GITHUB, str2toml, &GITHUB_AUTHOR)]
     #[case::yaml_string(YAML_SIMPLE, str2yaml, &SIMPLE_AUTHOR)]
-    #[case::yaml_structured(YAML_WITH_MAIL, str2yaml, &EMAIL_AUTHOR)]
+    #[case::yaml_structured_email(YAML_WITH_MAIL, str2yaml, &EMAIL_AUTHOR)]
+    #[case::yaml_structured_homepage(YAML_WITH_HOMEPAGE, str2yaml, &HOMEPAGE_AUTHOR)]    
+    #[case::yaml_structured_github(YAML_WITH_GITHUB, str2yaml, &GITHUB_AUTHOR)]
     #[case::json_string(JSON_SIMPLE, str2json, &SIMPLE_AUTHOR)]
-    #[case::json_structured(JSON_WITH_MAIL, str2json, &EMAIL_AUTHOR)]
+    #[case::json_structured_email(JSON_WITH_MAIL, str2json, &EMAIL_AUTHOR)]
+    #[case::json_structured_homepage(JSON_WITH_HOMEPAGE, str2json, &HOMEPAGE_AUTHOR)]    
+    #[case::json_structured_github(JSON_WITH_GITHUB, str2json, &GITHUB_AUTHOR)]
     fn test_author_deserialisation(
         #[case] input: &str,
         #[case] from_str: fn(&str) -> HashMap<String, Author>,
