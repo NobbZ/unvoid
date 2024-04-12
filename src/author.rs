@@ -1,8 +1,9 @@
-use eyre::Result;
-use rune::{Any, Module};
+use rune::Any;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, PartialEq, Any, Clone)]
+use crate::rune::ty::author::Author as RuneAuthor;
+
+#[derive(Debug, Deserialize, Any, Clone)]
 #[serde(untagged)]
 #[rune(constructor)]
 pub enum Author {
@@ -11,32 +12,18 @@ pub enum Author {
 }
 
 impl Author {
-    #[rune::function(path = Author::from_str)]
-    fn rune_from_str(s: String) -> Self {
-        Self::String(s)
-    }
-
-    #[rune::function(path = Author::new)]
-    fn rune_new(name: String) -> Self {
-        Self::Structured { name, email: None }
-    }
-
-    #[rune::function(path = Author::with_mail)]
-    fn rune_with_mail(name: String, email: String) -> Self {
-        Self::Structured {
-            name,
-            email: Some(email),
+    pub fn get_name(&self) -> String {
+        match self {
+            Self::String(name) => name.clone(),
+            Self::Structured { name, .. } => name.clone(),
         }
     }
 
-    pub fn register(module: &mut Module) -> Result<()> {
-        module.ty::<Author>()?;
-
-        module.function_meta(Self::rune_from_str)?;
-        module.function_meta(Self::rune_new)?;
-        module.function_meta(Self::rune_with_mail)?;
-
-        Ok(())
+    pub fn get_email(&self) -> Option<String> {
+        match self {
+            Self::Structured { email, .. } => email.clone(),
+            _ => None,
+        }
     }
 }
 
@@ -46,6 +33,21 @@ where
 {
     fn from(s: S) -> Self {
         Author::String(s.as_ref().to_string())
+    }
+}
+
+impl From<RuneAuthor> for Author {
+    fn from(rune_author: RuneAuthor) -> Self {
+        Author::Structured {
+            name: rune_author.name,
+            email: rune_author.email,
+        }
+    }
+}
+
+impl PartialEq<Author> for Author {
+    fn eq(&self, other: &Author) -> bool {
+        self.get_name() == other.get_name() && self.get_email() == other.get_email()
     }
 }
 

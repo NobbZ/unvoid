@@ -5,13 +5,13 @@ use rune::{Any, ContextError, Module};
 #[rune(constructor, item = ::unvoid::author)]
 pub struct Author {
     #[rune(get, set)]
-    name: String,
+    pub name: String,
     #[rune(get, set)]
-    email: Option<String>,
+    pub email: Option<String>,
     #[rune(get, set)]
-    homepage: Option<String>,
+    pub homepage: Option<String>,
     #[rune(get, set)]
-    github: Option<String>,
+    pub github: Option<String>,
 }
 
 impl Author {

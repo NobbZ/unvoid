@@ -6,6 +6,7 @@ use serde::Deserialize;
 
 use crate::author::Author;
 use crate::rune::init_rune_vm;
+use crate::rune::ty::manifest::Manifest as RuneManifest;
 use crate::version::Version;
 
 #[derive(Debug, Deserialize, Any)]
@@ -69,13 +70,24 @@ impl Manifest {
     }
 }
 
+impl From<RuneManifest> for Manifest {
+    fn from(value: RuneManifest) -> Self {
+        Self {
+            name: value.name,
+            version: value.version.into(),
+            authors: value.authors.into_iter().map(Author::from).collect(),
+            templates: value.templates,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use lazy_static::lazy_static;
-
     use super::*;
-
+    use crate::rune::ty::manifest::Manifest as RuneManifest;
+    use lazy_static::lazy_static;
     use pretty_assertions::assert_eq;
+    use rune::sources;
 
     lazy_static! {
         static ref ALICE: Author = Author::String("Alice".into());
@@ -157,39 +169,56 @@ mod tests {
         assert_manifest!(manifest);
     }
 
-    // #[test]
-    // fn minimal_deserializes_correctly_from_rune() {
-    //     let source = Source::memory(
-    //         r#"
-    //         pub fn manifest() {
-    //             let version = Version::parse("0.1.0")?;
+    #[test]
+    fn minimal_deserializes_correctly_from_rune() -> Result<()> {
+        let mut sources = sources! {
+            memory => {
+                use ::unvoid::{
+                    author::Author,
+                    manifest::Manifest,
+                    version::Version,
+                };
 
-    //             Ok(Manifest {
-    //                 name: "my-project",
-    //                 version: version,
-    //                 authors: [
-    //                     Author::new("Alice"),
-    //                     Author::new("Bob"),
-    //                     Author::new("Charlie").with_mail("example@example.com"),
-    //                 ],
-    //                 templates: #{}
-    //             })
-    //         }
-    //     "#,
-    //     )
-    //     .unwrap();
+                pub fn manifest() {
+                    let version = Version::parse_simple("0.1.0").unwrap();
 
-    //     let manifest = Manifest::from_rune(source).unwrap();
+                    Manifest {
+                        name: "my-project",
+                        version: version,
+                        authors: [
+                            Author::new("Alice"),
+                            Author::new("Bob"),
+                            Author::new("Charlie").with_email("example@example.com"),
+                        ],
+                        templates: #{}
+                    }
+                }
+            }
+        };
 
-    //     assert_manifest!(manifest);
-    // }
+        let rune_manifest: RuneManifest =
+            rune::from_value(init_rune_vm(&mut sources)?.call(["manifest"], ())?)?;
 
-    // #[test]
-    // fn minimal_seserializes_correctly_from_rune_file() {
-    //     let source = Source::from_path("tests/manifests/simple.rn").unwrap();
+        let manifest: Manifest = rune_manifest.into();
 
-    //     let manifest = Manifest::from_rune(source).unwrap();
+        assert_manifest!(manifest);
 
-    //     assert_manifest!(manifest);
-    // }
+        Ok(())
+    }
+
+    #[test]
+    fn minimal_seserializes_correctly_from_rune_file() -> Result<()> {
+        let source = Source::from_path("tests/manifests/simple.rn")?;
+        let mut sources = Sources::new();
+        sources.insert(source)?;
+
+        let rune_manifest: RuneManifest =
+            rune::from_value(init_rune_vm(&mut sources)?.call(["manifest"], ())?)?;
+
+        let manifest: Manifest = rune_manifest.into();
+
+        assert_manifest!(manifest);
+
+        Ok(())
+    }
 }

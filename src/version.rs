@@ -5,6 +5,8 @@ use rune::{runtime::Protocol, Any, Module};
 use semver::Version as SemVer;
 use serde::Deserialize;
 
+use crate::rune::ty::version::Version as RuneVersion;
+
 #[derive(Debug, Deserialize, PartialEq, Any)]
 pub struct Version(SemVer);
 
@@ -71,6 +73,12 @@ impl Version {
 impl From<SemVer> for Version {
     fn from(semver: SemVer) -> Self {
         Version(semver)
+    }
+}
+
+impl From<RuneVersion> for Version {
+    fn from(rune_version: RuneVersion) -> Self {
+        Version::new(rune_version.major, rune_version.minor, rune_version.patch)
     }
 }
 
