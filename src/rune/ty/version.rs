@@ -1,7 +1,7 @@
 use rune::{Any, ContextError, Module};
 use semver::Version as SemVer;
 
-#[derive(Debug, PartialEq, Any)]
+#[derive(Debug, PartialEq, Any, Clone)]
 #[rune(item = ::unvoid::version)]
 pub struct Version {
     #[rune(get, set)]

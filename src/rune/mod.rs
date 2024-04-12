@@ -9,14 +9,13 @@ use rune::{
 };
 
 use self::ty::author;
+use self::ty::manifest;
 use self::ty::version;
 
 pub fn prepare_context() -> Result<Context> {
-    // Manifest::register(&mut prelude)?;
-    // Version::register(&mut prelude)?;
-
     let mut context = Context::with_default_modules()?;
     context.install(author::module()?)?;
+    context.install(manifest::module()?)?;
     context.install(version::module()?)?;
 
     Ok(context)

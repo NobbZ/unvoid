@@ -67,12 +67,9 @@ pub fn module() -> Result<Module, ContextError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use rune::sources;
-
     use crate::rune::init_rune_vm;
-
     use pretty_assertions::assert_eq;
+    use rune::sources;
 
     #[test]
     fn test_author_only_name() -> Result<()> {
@@ -86,13 +83,7 @@ mod tests {
             }
         };
 
-        let author: Author = rune::from_value(
-            init_rune_vm(&mut sources)
-                .unwrap()
-                .call(["main"], ())
-                .unwrap(),
-        )
-        .unwrap();
+        let author: Author = rune::from_value(init_rune_vm(&mut sources)?.call(["main"], ())?)?;
 
         assert_eq!(
             author,
@@ -119,13 +110,7 @@ mod tests {
             }
         };
 
-        let author: Author = rune::from_value(
-            init_rune_vm(&mut sources)
-                .unwrap()
-                .call(["main"], ())
-                .unwrap(),
-        )
-        .unwrap();
+        let author: Author = rune::from_value(init_rune_vm(&mut sources)?.call(["main"], ())?)?;
 
         assert_eq!(
             author,
@@ -152,13 +137,7 @@ mod tests {
             }
         };
 
-        let author: Author = rune::from_value(
-            init_rune_vm(&mut sources)
-                .unwrap()
-                .call(["main"], ())
-                .unwrap(),
-        )
-        .unwrap();
+        let author: Author = rune::from_value(init_rune_vm(&mut sources)?.call(["main"], ())?)?;
 
         assert_eq!(
             author,
@@ -185,13 +164,7 @@ mod tests {
             }
         };
 
-        let author: Author = rune::from_value(
-            init_rune_vm(&mut sources)
-                .unwrap()
-                .call(["main"], ())
-                .unwrap(),
-        )
-        .unwrap();
+        let author: Author = rune::from_value(init_rune_vm(&mut sources)?.call(["main"], ())?)?;
 
         assert_eq!(
             author,
@@ -221,13 +194,7 @@ mod tests {
             }
         };
 
-        let author: Author = rune::from_value(
-            init_rune_vm(&mut sources)
-                .unwrap()
-                .call(["main"], ())
-                .unwrap(),
-        )
-        .unwrap();
+        let author: Author = rune::from_value(init_rune_vm(&mut sources)?.call(["main"], ())?)?;
 
         assert_eq!(
             author,
