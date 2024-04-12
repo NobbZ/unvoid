@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use eyre::{Result, WrapErr};
 use serde::Deserialize;
+use semver::Version;
 
 use crate::r#static::author::Author;
 use crate::rune::ty::manifest::Manifest as RuneManifest;
-use crate::version::Version;
 
 #[derive(Debug, Deserialize)]
 pub struct Manifest {
