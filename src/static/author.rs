@@ -1,11 +1,9 @@
-use rune::Any;
 use serde::Deserialize;
 
 use crate::rune::ty::author::Author as RuneAuthor;
 
-#[derive(Debug, Deserialize, Any, Clone)]
+#[derive(Debug, Deserialize,  Clone)]
 #[serde(untagged)]
-#[rune(constructor)]
 pub enum Author {
     String(String),
     Structured { name: String, email: Option<String> },

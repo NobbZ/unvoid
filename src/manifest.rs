@@ -1,16 +1,13 @@
 use std::collections::HashMap;
 
 use eyre::{Result, WrapErr};
-use rune::{Any, Module, Source, Sources, Value};
 use serde::Deserialize;
 
-use crate::author::Author;
-use crate::rune::init_rune_vm;
+use crate::r#static::author::Author;
 use crate::rune::ty::manifest::Manifest as RuneManifest;
 use crate::version::Version;
 
-#[derive(Debug, Deserialize, Any)]
-#[rune(constructor)]
+#[derive(Debug, Deserialize)]
 pub struct Manifest {
     pub name: String,
     pub version: Version,
@@ -40,34 +37,6 @@ impl Manifest {
     {
         serde_json::from_str(json.as_ref()).wrap_err("Can not parse manifest from JSON")
     }
-
-    pub fn from_rune(source: Source) -> Result<Self> {
-        let name = source.name().to_string();
-
-        let mut sources = Sources::new();
-        sources
-            .insert(source)
-            .wrap_err_with(|| format!("unable to insert source '{}'", name))?;
-
-        let mut vm = init_rune_vm(&mut sources)?;
-
-        let output = vm
-            .call(["manifest"], ())
-            .wrap_err("Unable to call manifest entrypoint")?;
-
-        let result: Result<Value, String> = rune::from_value(output)?;
-
-        match result {
-            Ok(value) => Ok(rune::from_value(value)?),
-            Err(err) => Err(eyre::eyre!(err)),
-        }
-    }
-
-    pub fn register(module: &mut Module) -> Result<()> {
-        module.ty::<Manifest>()?;
-
-        Ok(())
-    }
 }
 
 impl From<RuneManifest> for Manifest {
@@ -84,10 +53,11 @@ impl From<RuneManifest> for Manifest {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::rune::init_rune_vm;
     use crate::rune::ty::manifest::Manifest as RuneManifest;
     use lazy_static::lazy_static;
     use pretty_assertions::assert_eq;
-    use rune::sources;
+    use rune::{sources, Source, Sources};
 
     lazy_static! {
         static ref ALICE: Author = Author::String("Alice".into());
