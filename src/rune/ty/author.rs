@@ -1,13 +1,20 @@
 use eyre::Result;
 use rune::{Any, ContextError, Module};
 
+/// An [`Author`] describes the author of a template or template library. 
 #[derive(Debug, PartialEq, Any, Clone)]
 #[rune(constructor, item = ::unvoid::author)]
 pub struct Author {
+    /// The name of the author, preferably the full name, but any nickname is valid as well.
     #[rune(get, set)]
     pub name: String,
+    /// The email-address of the author
     #[rune(get, set)]
     pub email: Option<String>,
+    /// The primary website of the author.
+    /// 
+    /// This should not point at any profile page that is inferable from the social media
+    /// accounts supported.
     #[rune(get, set)]
     pub homepage: Option<String>,
     #[rune(get, set)]
@@ -50,6 +57,7 @@ impl Author {
     }
 }
 
+/// This module holds functions and datastructures to deal with [`Author`]s.
 #[rune::module(::unvoid::author)]
 // pub fn register(_module: &mut Module) -> Result<Module> {
 pub fn module() -> Result<Module, ContextError> {
