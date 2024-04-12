@@ -10,17 +10,17 @@ pub enum Author {
 }
 
 impl Author {
-    pub fn get_name(&self) -> String {
+    pub fn get_name(&self) -> &str {
         match self {
-            Self::String(name) => name.clone(),
-            Self::Structured { name, .. } => name.clone(),
+            Self::String(name) => name,
+            Self::Structured { name, .. } => name,
         }
     }
 
-    pub fn get_email(&self) -> Option<String> {
+    pub fn get_email(&self) -> &Option<String> {
         match self {
-            Self::Structured { email, .. } => email.clone(),
-            _ => None,
+            Self::Structured { email, .. } => email,
+            _ => &None,
         }
     }
 }
