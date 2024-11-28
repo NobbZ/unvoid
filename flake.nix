@@ -23,7 +23,7 @@
         devShells.default = mkShellMini {
           packages = builtins.attrValues {
             inherit (pkgs) cargo-nextest cargo-audit cargo-deny cargo-tarpaulin rust-analyzer-unwrapped;
-            inherit (pkgs) nil pre-commit;
+            inherit (pkgs) nil pre-commit watchexec;
             inherit (pkgs) rune-languageserver rune;
             inherit rust;
           };
